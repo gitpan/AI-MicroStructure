@@ -1,0 +1,56 @@
+{
+   "abstract" : "unknown",
+   "author" : [
+      "Hagen \"santex\" Geissler <santex@cpan.org>"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150",
+   "license" : [
+      "unknown"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "AI-MicroStructure",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "inc"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : 0
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : 0
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "CGI" : 0,
+            "Curses" : 0,
+            "Cwd" : 0,
+            "Data::Freq" : 0,
+            "File::Glob" : 0,
+            "File::Stat" : 0,
+            "Getopt::Long" : 0,
+            "JSON" : 0,
+            "List::Util" : 0,
+            "POE" : 0,
+            "POE::Component::Server::HTTP" : 0,
+            "POE::Component::Server::TCP" : 0,
+            "Rose::DB::Object" : 0,
+            "Search::ContextGraph" : 0,
+            "Term::ShellUI" : 0,
+            "Test::More" : 0
+         }
+      }
+   },
+   "release_status" : "stable",
+   "version" : "0.01"
+}

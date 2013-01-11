@@ -1,53 +1,56 @@
+
 use strict;
 use warnings;
-use ExtUtils::MakeMaker;
 
-WriteMakefile(
-    NAME                => 'AI::MicroStructure',
-    AUTHOR              => 'Hagen "santex" Geissler <santex@cpan.org>',
-    VERSION_FROM        => 'lib/AI/MicroStructure.pm',
-    ABSTRACT_FROM       => 'lib/AI/MicroStructure.pm',
-    PL_FILES            => {},
-    PREREQ_PM => {
-'Test::More' => 0,
-'File::Glob' => 0,
-'List::Util' => 0,
-'JSON'=>0,
-'POE'=>0,
-'Getopt::Long'=>0,
-'Curses' => 0,
-'Search::ContextGraph' => 0,
-'Rose::DB::Object' => 0,
-'Term::ShellUI'=>0,
-'File::Stat'=>0,
-'POE::Component::Server::HTTP'=>0,
-'POE::Component::Server::TCP' => 0,
-'Search::ContextGraph' => 0,
-'Cwd' => 0,
-'CGI'=>0,
-'Data::Freq'=>0,
 
-    },
-    EXE_FILES  => [
-'scripts/microfy',
-'scripts/micro-cli',
-'scripts/micro-main',
-'scripts/micro-steemer',
-'scripts/micro-wikiend',
-'scripts/micro-wnet',
-'scripts/micro',
-'scripts/micro-bashcommand',
-'scripts/micro-dict',
-'scripts/micro-rename',
-'scripts/micro-tojson',
-'scripts/micro-wikilist',
-'scripts/micro-wnwikilist',
-'scripts/am-try'
-],
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'AI-MicroStructure-*' },
+
+use ExtUtils::MakeMaker 6.30;
+
+
+
+my %WriteMakefileArgs = (
+  "ABSTRACT" => "turns baubles into trinkets",
+  "AUTHOR" => "santex <santex\@cpan.org>",
+  "BUILD_REQUIRES" => {},
+  "CONFIGURE_REQUIRES" => {
+    "ExtUtils::MakeMaker" => "6.30"
+  },
+  "DISTNAME" => "AI-MicroStructure",
+  "EXE_FILES" => [
+    "bin/micro-wiki",
+    "bin/micro",
+    "bin/micrownet",
+    "bin/micro-ontology",
+    "bin/micro-sense",
+    "bin/micro-wnet"
+  ],
+  "LICENSE" => "perl",
+  "NAME" => "AI::MicroStructure",
+  "PREREQ_PM" => {},
+  "VERSION" => "0.001",
+  "test" => {
+    "TESTS" => "t/*.t"
+  }
 );
 
+
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
+}
+
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+
+WriteMakefile(%WriteMakefileArgs);
 
 
 

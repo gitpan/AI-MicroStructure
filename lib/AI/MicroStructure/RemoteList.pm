@@ -4,6 +4,7 @@ use warnings;
 use Carp;
 use Data::Dumper;
 # method that extracts the items from the remote content and returns them
+
 sub extract {
     my $class = ref $_[0] || $_[0];
     no strict 'refs';
@@ -88,6 +89,19 @@ sub remote_list {
     return grep { !$seen{$_}++ } @items;
 }
 
+
+sub clean {
+  my $str = shift;
+     $str = AI::MicroStructure::RemoteList::tr_utf8_basic($str);
+
+     $str = AI::MicroStructure::RemoteList::tr_accent($str);
+
+
+     return $str;
+
+}
+
+
 #
 # transformation subroutines
 #
@@ -125,13 +139,33 @@ my %utf2asc = (
     "\x{2640}"     => 'female',
     "\x{2642}"     => 'male',
 );
-my $utf_re = qr/(@{[join( '|', sort keys %utf2asc )]})/; 
+my $utf_re = qr/(@{[join( '|', sort keys %utf2asc )]})/;
 
 sub tr_utf8_basic {
     my $str = shift;
     $str =~ s/$utf_re/$utf2asc{$1}/go;
     return $str;
 }
+
+sub category { $_[0]->{category} }
+
+sub categories {
+    my $class = shift;
+    $class = ref $class if ref $class;
+
+    no strict 'refs';
+    return keys %{"$class\::MultiList"};
+}
+
+sub has_category {
+    my ($class, $category) = @_;
+    $class = ref $class if ref $class;
+
+    no strict 'refs';
+    return exists ${"$class\::MultiList"}{$category};
+}
+
+
 
 1;
 

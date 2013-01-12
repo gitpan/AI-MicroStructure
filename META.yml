@@ -1,5 +1,5 @@
 ---
-abstract: 'turns baubles into trinkets'
+abstract: 'AI::MicroStructure   Creates Concepts for words  '
 author:
   - 'santex <santex@cpan.org>'
 build_requires: {}
@@ -12,4 +12,4 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: AI-MicroStructure
-version: 0.002
+version: 0.003

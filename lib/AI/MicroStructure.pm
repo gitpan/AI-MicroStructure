@@ -1,42 +1,19 @@
 package AI::MicroStructure;
-
-
-#with 'AI::MicroStructure';
-
-use strict;
-use utf8; # for translator credits
-
-use Carp;
-use File::BaseDir 0.03 qw/
-	config_home config_files
-	data_files data_dirs
-	xdg_cache_home
-/;
-
-
-our $COPYRIGHT = 'Copyright (c) 2010-2012 hagen geissler <santex@cpan.org>';
-
-
 use strict;
 use warnings;
 use Carp;
 use Digest::MD5 qw(md5 md5_hex md5_base64);
-
 use File::Basename;
 use File::Spec;
 use File::Glob;
 use Data::Dumper;
-our $VERSION = '0.01';
+our $VERSION = '0.03';
 our $Theme = 'any'; # default theme
-#use AI::MicroStructure::Driver;
-
 our $CODESET = 'utf8';
 our $LANG = '';
-
 our %MICRO;
 our %MODS;
 our %ALIEN;
-# private class method
 our $str = "[A-Z]";
 our $special = "any";
 our $search;
@@ -467,10 +444,18 @@ my @file = grep{/$Theme/}map{File::Glob::bsd_glob( File::Spec->catfile( $_, qw( 
   }
 
 }
+
 sub openData{
 
 my $self = shift;
-while(<DATA>){
+
+my @datax = ();
+
+if(<DATA>){
+
+@datax = <DATA>;
+
+while(@datax){
   chomp;
   if($_=~/^#\s*(\w+.*)$/) {
       @a=split(" ",$1);
@@ -495,8 +480,10 @@ while(<DATA>){
   };
 
 }
-
+}
 return $data;
+
+
 }
 
 sub getBlank {
@@ -621,13 +608,10 @@ END{
 
 
 if($drop == 1) {
-
    $micro->drop($ThemeName);
-
 }
 
 if($new==1){
-
 
   use Term::ReadKey;
   use JSON;
@@ -635,7 +619,6 @@ if($new==1){
   my $data = decode_json(lc`micro-sense $ThemeName words`);
 
 
-	print Dumper $data;
   my $char;
   my $line;
   my $senses=@{$data->{"senses"}};
@@ -654,22 +637,8 @@ if($new==1){
   my  @d = grep{/^$line#/}split("sense~~~~~~~~~",$d);
   @{$data->{rows}->{"search"}}=split("#",join("",@d));
 
-
-#print Dumper @{$data->{rows}->{"search"}};
-
-
-
   if($line>0){
     $micro->save_new($ThemeName,$data,$line);
-#    die();
-
-#    print Dumper @{$data->{rows}->{"search"}};
-    #
-
-#    my @ontology = decode_json(`micro-ontology $ThemeName $line`);
-
- #   $micro->save_default($data,$line);
- #   printf "\ncool!!!!\n";
     exit 0;
   }else{
 
@@ -683,11 +652,9 @@ if($new==1){
   }
 
   if($write == 1) {
-#     $micro->save_default();
+     $micro->save_default();
   }
 
-
-#
 
 }
 
@@ -787,18 +754,57 @@ foreach my $sensnrx (sort keys %{$data->{"rows"}->{"senses"}})
 return $usage;
 }
 
-#print Dumper $micro;
 
 1;
-# ABSTRACT: turns baubles into trinkets
+#print Dumper $micro;
 
+# ABSTRACT: AI::MicroStructure   Creates Concepts for words  
+
+=head1 NAME
+  AI::MicroStructure
+=head1 DESCRIPTION
+  Creates Concepts for words  
+=head1 SYNOPSIS    
+  
+  ~$ micro new world
+  
+  ~$ micro themes
+  
+  ~$ micro any 2
+  
+  ~$ micro drop world
+  
+  ~$ micro
+  
+=head1 AUTHOR
+
+  Hagen Geissler <santex@cpan.org>
+
+=head1 COPYRIGHT AND LICENCE
+
+  Hagen Geissler <santex@cpan.org>
+
+=head1 SUPPORT AND DOCUMENTATION
+
+  ☞ [sample using concepts](http://quantup.com)
+
+  ☞ [PDF info on my works](https://github.com/santex)
+
+  
+=head1 SEE ALSO
+
+  AI-MicroStructure
+  AI-MicroStructure-Cache
+  AI-MicroStructure-Deamon
+  AI-MicroStructure-Relations
+  AI-MicroStructure-Concept
+  AI-MicroStructure-Data
+  AI-MicroStructure-Driver
+  AI-MicroStructure-Plugin-Pdf
+  AI-MicroStructure-Plugin-Twitter
+  AI-MicroStructure-Plugin-Wiki
+
+  
+__END__
 __DATA__
-count=0;
-for i in `perl -MAI::MicroStructure -le 'print  for AI::MicroStructure->themes';`; do
-echo "@@@@<SET>@@@@<"$count">@@@@<"$i">@@@@";
-count=$(expr $count + 1);
-perl -MAI::MicroStructure::$i  -le '$m=AI::MicroStructure::'$i'; print join(" ",$m->name(scalar $m));
-print join("\n",$m->categories());';
-done
-
 

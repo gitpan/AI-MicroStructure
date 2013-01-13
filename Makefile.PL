@@ -18,6 +18,7 @@ my %WriteMakefileArgs = (
   "DISTNAME" => "AI-MicroStructure",
   "EXE_FILES" => [
     "bin/micro-wiki",
+    "bin/micro-deamon",
     "bin/micro",
     "bin/micrownet",
     "bin/micro-ontology",
@@ -27,7 +28,7 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "AI::MicroStructure",
   "PREREQ_PM" => {},
-  "VERSION" => "0.006",
+  "VERSION" => "0.007",
   "test" => {
     "TESTS" => ""
   }

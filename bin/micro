@@ -35,13 +35,13 @@ if( grep{/\bdrop\b/} @ARGV ){ $write = 1; cleanArgs("drop");  };
 my $j = AI::MicroStructure->new()->themes();
 
 
-if($j eq "0" || $j eq "any"){  
+if($j == 0 || $j eq "any"){  
 
 print $usage;
 exit;
 }else{
 
-#print $j;
+#   print $j;
 
 }
 

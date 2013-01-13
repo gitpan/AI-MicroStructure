@@ -28,7 +28,10 @@ our @a=();
 our ($new,$debug, $write,$drop) =(0,0,0,0);
 
 
-grep{/\b$_\b/} @ARGV  ?  eval "\$$_ = 1; cleanArgs($_);" : ""  for(qw(new debug write drop));
+if( grep{/\bnew\b/} @ARGV ){ $new = 1; cleanArgs("new"); }
+if( grep{/\bdebug\b/} @ARGV ){$debug = 1; cleanArgs("debug"); };
+if( grep{/\bwrite\b/} @ARGV ){ $write = 1; cleanArgs("write");  };
+if( grep{/\bdrop\b/} @ARGV ){ $drop = 1; cleanArgs("drop");  };
 
 our $ThemeName = $ARGV[0]; # default theme
 our $theme = $ARGV[0]; # default theme
@@ -43,7 +46,7 @@ sub cleanArgs{
 sub find_themes {
    my ( $class, @dirs ) = @_;
    $ALIEN{"base"} =  [map  @$_,
-   grep { $_->[0] !~ /^([A-Z]|foo)/ }   # remove the non-theme subclasses
+   grep { $_->[0] !~ /^([A-Z]|foo|any)/ }   # remove the non-theme subclasses
    map  { [ ( fileparse( $_, qr/\.pm$/ ) )[0] => $_ ] }
    map  { File::Glob::bsd_glob(
    File::Spec->catfile( $_, qw( AI MicroStructure *.pm ) ) ) } @dirs];

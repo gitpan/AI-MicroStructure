@@ -19,7 +19,7 @@ sub name {
     my $theme =
       ( shuffle( grep { !/^(any|random)$/ } AI::MicroStructure->themes() ) )[0];
     
-    if($theme && $theme =~ /any/){
+    if($theme && $theme !~ /any/){
       $self->{micro}->name( $theme, @_ );
     
     }

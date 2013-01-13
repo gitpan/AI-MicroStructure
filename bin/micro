@@ -26,15 +26,23 @@ my $usage = << 'EOT';
 
 EOT
 
-grep{/\b$_\b/} @ARGV  ?  eval "\$$_ = 1; cleanArgs($_);" : ""  for(qw(new debug write drop));
 
-my @themes = AI::MicroStructure->new()->themes;
+if( grep{/\bnew\b/} @ARGV ){ $new = 1; cleanArgs("new"); }
+if( grep{/\bdebug\b/} @ARGV ){$debug = 1; cleanArgs("debug"); }; 
+if( grep{/\bwrite\b/} @ARGV ){ $write = 1; cleanArgs("write");  }; 
+if( grep{/\bdrop\b/} @ARGV ){ $write = 1; cleanArgs("drop");  }; 
+
+my $j = AI::MicroStructure->new()->themes();
 
 
-if(!$#themes || $#themes<=1){  
+if($j eq "0" || $j eq "any"){  
 
 print $usage;
 exit;
+}else{
+
+#print $j;
+
 }
 
 
@@ -58,7 +66,8 @@ my $theme;
 
 if(defined($ARGV[0]) && $ARGV[0] =~ m/themes/){
   
-    print join("\n",@themes);
+    my $json = encode_json([grep{!/any/}AI::MicroStructure->new()->themes()]);
+    print $json;
     exit;
 
 

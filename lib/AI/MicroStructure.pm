@@ -43,7 +43,7 @@ sub cleanArgs{
 sub find_themes {
    my ( $class, @dirs ) = @_;
    $ALIEN{"base"} =  [map  @$_,
-   grep { $_->[0] !~ /^([A-Z]|foo|any)/ }   # remove the non-theme subclasses
+   grep { $_->[0] !~ /^([A-Z]|foo)/ }   # remove the non-theme subclasses
    map  { [ ( fileparse( $_, qr/\.pm$/ ) )[0] => $_ ] }
    map  { File::Glob::bsd_glob(
    File::Spec->catfile( $_, qw( AI MicroStructure *.pm ) ) ) } @dirs];

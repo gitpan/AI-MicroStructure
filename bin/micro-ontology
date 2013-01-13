@@ -86,7 +86,7 @@ Perl Safe error
 
 $m = $ARGV[0];
 $mysense = $ARGV[1] unless(!$ARGV[1]);
-$m = `micro any` unless($m);
+#$m = `micro any` unless($m);
 $m =~s/\n//g unless(!$m);
 #print  Dumper `wn  hydra  -over -hypen -hypon -synsn -smemn -membn -subsn -meron -holon -derin -domnn -famln -coorn -hmern -grepn`;# unless(!$m);
 $body = "wn $m -over -hypen -hypon -synsn -smemn -membn -subsn -meron -holon -derin -domnn -famln -coorn -hmern -grepn" unless(!$m);

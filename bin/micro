@@ -28,10 +28,10 @@ EOT
 
 grep{/\b$_\b/} @ARGV  ?  eval "\$$_ = 1; cleanArgs($_);" : ""  for(qw(new debug write drop));
 
-my @themes = AI::MicroStructure->new()->themes();
+my @themes = AI::MicroStructure->new()->themes;
 
 
-if(!$#themes){  
+if(!$#themes || $#themes<=1){  
 
 print $usage;
 exit;

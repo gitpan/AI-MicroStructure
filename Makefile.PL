@@ -27,7 +27,7 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "AI::MicroStructure",
   "PREREQ_PM" => {},
-  "VERSION" => "0.004",
+  "VERSION" => "0.005",
   "test" => {
     "TESTS" => ""
   }

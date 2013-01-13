@@ -1,9 +1,10 @@
 package AI::MicroStructure::any;
 use strict;
 use List::Util 'shuffle';
-use AI::MicroStructure ();
+use AI::MicroStructure;
+use AI::MicroStructure::List;
 
-our $Theme = 'any';
+our $theme = 'any';
 
 sub import {
     # export the microany function
@@ -16,8 +17,13 @@ sub import {
 sub name {
     my $self  = shift;
     my $theme =
-      ( shuffle( grep { !/^(?:any|random)$/ } AI::MicroStructure->themes() ) )[0];
-    $self->{micro}->name( $theme, @_ );
+      ( shuffle( grep { !/^(any|random)$/ } AI::MicroStructure->themes() ) )[0];
+    
+    if($theme && $theme =~ /any/){
+      $self->{micro}->name( $theme, @_ );
+    
+    }
+    
 }
 
 sub new {
@@ -27,7 +33,7 @@ sub new {
     return bless { micro => AI::MicroStructure->new( @_ ) }, $class;
 }
 
-sub theme { $Theme };
+sub theme { $theme };
 
 sub has_remotelist { };
 

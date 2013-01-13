@@ -5,7 +5,7 @@ use warnings;
 use Getopt::Long;
 use Digest::MD5 qw(md5_hex);
 use Storable qw(lock_retrieve lock_store);
-
+our $VERSION = '0.08';
 sub new {
   my $pkg = shift;
   my $self = bless {}, $pkg;
@@ -30,7 +30,7 @@ GetOptions (\%opts,
 
 
   $self->{cache_file} = $opts{cache_file};
-  $self->{cache_file} = $self->tildeexp($self->{cache_file});
+  $self->{cache_file} = $pkg->tildeexp($self->{cache_file});
   $self->{opts} = %opts;
   eval {
 

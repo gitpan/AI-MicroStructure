@@ -6,7 +6,7 @@ binmode STDOUT, ':utf8';
 binmode STDERR, ':utf8';
 
 use HTML::Strip;
-use Data::Dumper;
+use Data::Printer;
 use Digest::MD5 qw(md5_hex);
 use AI::MicroStructure::WordBlacklist;
 use JSON::XS;
@@ -40,9 +40,9 @@ my $TOP="";
 
 
    our $x = Storable::CouchDB->new(
-                                      uri =>"http://user:password\@localhost:5984/",  #default
-                                      db  =>"table"
-                                     );
+            uri =>"http://user:password\@localhost:5984/",  #default
+            db  =>"table"
+           );
 
 
     my $carry = {count=>0,max=>0};
@@ -152,7 +152,7 @@ sub call  {
 #      if ($response->base =~ /m{$TOP}/ ) {
           my $doc={};
           my $linkdata={};
-          use Data::Dumper;
+
           require HTML::SimpleLinkExtor;
           no warnings 'utf8';
           my $e = HTML::SimpleLinkExtor->new($response->base);
@@ -257,15 +257,15 @@ my $hs = HTML::Strip->new();
                 $doc->{related} = [grep{!/#/}map{my $a = $_; $a =~ s/ /_/g; $_=ucfirst $a;}@{$doc->{related}}];
                 $doc->{size} = length sprintf($doc);
 
-                 my $tmp = $doc->{fulltext};
-                    $tmp =~ s/( |'|,|")/\n/g;
-                my @tmp =  split("\n",$tmp);
+#                 my $tmp = $doc->{fulltext};
+ #                   $tmp =~ s/( |'|,|")/\n/g;
+  #              my @tmp =  split("\n",$tmp);
 
-                    $tmp = grep{!@s}@tmp;
+  #                 $tmp = grep{!@s}@tmp;
 
 
 
-      $doc->{wn} = `wn $url  -over`;
+  #    $doc->{wn} = `wn $url  -over`;
 
 
    #   warn "doing $doc->{wn}";
@@ -273,10 +273,10 @@ my $hs = HTML::Strip->new();
 
 
     #       my @L  = [sort {$a cmp $b}grep{/(wiki|book|Category|List_of_)/i} @links];
+#p $doc;
+  #        $x->store("$url" ,$doc);
 
-          $x->store("$url" ,$doc);
-
- #       print Dumper $doc;
+       p $doc;
 
         return $doc;
 
@@ -294,7 +294,7 @@ if(defined($result->{$urlx}) && @{$result->{$urlx}->{related}}){
 
 
 foreach(@{$result->{$urlx}->{related}}){
- $result->{$_} = call($_);
+# $result->{$_} = call($_);
 }
 
 

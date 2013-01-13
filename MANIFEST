@@ -19,5 +19,3 @@ lib/AI/MicroStructure/MultiList.pm
 lib/AI/MicroStructure/RemoteList.pm
 lib/AI/MicroStructure/WordBlacklist.pm
 lib/AI/MicroStructure/any.pm
-t/00load.t
-t/01load.t

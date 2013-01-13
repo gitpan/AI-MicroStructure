@@ -5,11 +5,37 @@ use AI::MicroStructure;
 use Getopt::Long;
 use Data::Dumper;
 use JSON::XS;
+
 our ($new,$debug, $write,$drop) =(0,0,0,0); 
-if( grep{/\bnew\b/} @ARGV ){ $new = 1; cleanArgs("new"); }
-if( grep{/\bdebug\b/} @ARGV ){$debug = 1; cleanArgs("debug"); }; 
-if( grep{/\bwrite\b/} @ARGV ){ $write = 1; cleanArgs("write");  }; 
-if( grep{/\bdrop\b/} @ARGV ){ $write = 1; cleanArgs("drop");  }; 
+
+my $usage = << 'EOT';
+
+  there are no structures created yet 
+  
+  $ micro new ufo
+
+  $ micro
+
+  $ micro ufo
+  
+  $ micro ufo 5
+
+  $ micro any 10
+  
+  $ micro drop ufo
+
+EOT
+
+grep{/\b$_\b/} @ARGV  ?  eval "\$$_ = 1; cleanArgs($_);" : ""  for(qw(new debug write drop));
+
+my @themes = AI::MicroStructure->new()->themes();
+
+
+if(!$#themes){  
+
+print $usage;
+exit;
+}
 
 
 
@@ -22,8 +48,6 @@ sub cleanArgs{
     @ARGV=@tmp;
 }
 
-my $usage = << 'EOT';
-EOT
 
 my %conf = ( );
 GetOptions( \%conf, "whitespace|ws!", "version","themes", "help", "remote","new",
@@ -34,8 +58,7 @@ my $theme;
 
 if(defined($ARGV[0]) && $ARGV[0] =~ m/themes/){
   
-    my $json = encode_json([grep{!/any/}AI::MicroStructure->new()->themes()]);
-    print $json;
+    print join("\n",@themes);
     exit;
 
 

@@ -9,7 +9,7 @@ use WWW::Wikipedia;
 use JSON::XS;
 use Statistics::Basic qw(:all);
 
-our $VERSION = '0.010';
+our $VERSION = '0.011';
 our $supports = {};
 our $scale = 1;
 

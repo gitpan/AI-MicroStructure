@@ -3,14 +3,13 @@ package AI::MicroStructure::Relations;
 use strict;
 use warnings;
 use utf8; # for translator credits
-use Data::Format::Pretty::Console qw(format_pretty);
 use Data::Dumper;
 use AI::MicroStructure::Cache;
 use WWW::Wikipedia;
 use JSON::XS;
 use Statistics::Basic qw(:all);
 
-our $VERSION = '0.08';
+our $VERSION = '0.010';
 our $supports = {};
 our $scale = 1;
 
@@ -109,10 +108,15 @@ sub inspect {
 
 
 =head1 NAME
+
   AI::MicroStructure::Relations
+
 =head1 DESCRIPTION
+
   Gets Relations for Concepts based on  words
+
 =head1 SYNOPSIS    
+
   
   ~$ micro new world
   
@@ -124,6 +128,7 @@ sub inspect {
   
   ~$ micro
   
+
 =head1 AUTHOR
 
   Hagen Geissler <santex@cpan.org>

@@ -17,7 +17,7 @@ requires:
   AnyEvent::Subprocess::Easy: 0
   Carp: 0
   Data::Dumper: 0
-  Data::Format::Pretty::Console: 0
+  Data::Freq: 0
   Data::Printer: 0
   Digest::MD5: 0
   Fcntl: 0
@@ -39,4 +39,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.009
+version: 0.010

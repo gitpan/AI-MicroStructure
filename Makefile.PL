@@ -32,7 +32,7 @@ my %WriteMakefileArgs = (
     "AnyEvent::Subprocess::Easy" => 0,
     "Carp" => 0,
     "Data::Dumper" => 0,
-    "Data::Format::Pretty::Console" => 0,
+    "Data::Freq" => 0,
     "Data::Printer" => 0,
     "Digest::MD5" => 0,
     "Fcntl" => 0,
@@ -55,7 +55,7 @@ my %WriteMakefileArgs = (
     "utf8" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.009",
+  "VERSION" => "0.010",
   "test" => {
     "TESTS" => ""
   }

@@ -4,10 +4,14 @@ META.yml
 Makefile.PL
 README
 README.md
+_boot_out
 bin/micro
 bin/micro-deamon
+bin/micro-dict
 bin/micro-ontology
+bin/micro-rename
 bin/micro-sense
+bin/micro-steemer
 bin/micro-wiki
 bin/micro-wnet
 bin/micrownet

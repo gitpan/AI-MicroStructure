@@ -17,12 +17,15 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "AI-MicroStructure",
   "EXE_FILES" => [
+    "bin/micro-steemer",
     "bin/micro-wiki",
     "bin/micro-deamon",
+    "bin/micro-dict",
     "bin/micro",
     "bin/micrownet",
     "bin/micro-ontology",
     "bin/micro-sense",
+    "bin/micro-rename",
     "bin/micro-wnet"
   ],
   "LICENSE" => "perl",
@@ -47,6 +50,7 @@ my %WriteMakefileArgs = (
     "JSON::XS" => 0,
     "LWP::UserAgent" => 0,
     "List::Util" => 0,
+    "Parallel::Iterator" => 0,
     "Statistics::Basic" => 0,
     "Storable" => 0,
     "Storable::CouchDB" => 0,
@@ -57,7 +61,7 @@ my %WriteMakefileArgs = (
     "utf8" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.011",
+  "VERSION" => "0.012",
   "test" => {
     "TESTS" => ""
   }

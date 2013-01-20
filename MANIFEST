@@ -4,10 +4,11 @@ META.yml
 Makefile.PL
 README
 README.md
-_boot_out
+bin/WebSock002.pl
 bin/micro
 bin/micro-deamon
 bin/micro-dict
+bin/micro-git
 bin/micro-ontology
 bin/micro-rename
 bin/micro-sense
@@ -15,6 +16,7 @@ bin/micro-steemer
 bin/micro-wiki
 bin/micro-wnet
 bin/micrownet
+bin/nav.pl
 dist.ini
 lib/AI/MicroStructure.pm
 lib/AI/MicroStructure/Alias.pm

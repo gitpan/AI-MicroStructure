@@ -22,8 +22,11 @@ my %WriteMakefileArgs = (
     "bin/micro-deamon",
     "bin/micro-dict",
     "bin/micro",
+    "bin/micro-git",
     "bin/micrownet",
+    "bin/WebSock002.pl",
     "bin/micro-ontology",
+    "bin/nav.pl",
     "bin/micro-sense",
     "bin/micro-rename",
     "bin/micro-wnet"
@@ -37,6 +40,7 @@ my %WriteMakefileArgs = (
     "Data::Dumper" => 0,
     "Data::Printer" => 0,
     "Digest::MD5" => 0,
+    "Env" => 0,
     "Exporter" => 0,
     "Fcntl" => 0,
     "File::Basename" => 0,
@@ -46,10 +50,12 @@ my %WriteMakefileArgs = (
     "HTML::SimpleLinkExtor" => 0,
     "HTML::Strip" => 0,
     "HTTP::Request::Common" => 0,
+    "IO::Async::Loop" => 0,
     "JSON" => 0,
     "JSON::XS" => 0,
     "LWP::UserAgent" => 0,
     "List::Util" => 0,
+    "Net::Async::WebSocket::Server" => 0,
     "Parallel::Iterator" => 0,
     "Statistics::Basic" => 0,
     "Storable" => 0,
@@ -61,7 +67,7 @@ my %WriteMakefileArgs = (
     "utf8" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.012",
+  "VERSION" => "0.013",
   "test" => {
     "TESTS" => ""
   }

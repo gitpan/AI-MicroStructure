@@ -10,7 +10,7 @@ use File::Glob;
 use Data::Dumper;
 
 
-our $VERSION = '0.011';
+our $VERSION = '0.013';
 our $Structure = 'any'; # default structure
 our $CODESET = 'utf8';
 our $LANG = '';
@@ -609,6 +609,7 @@ if($new==1){
   Type: the number you choose 1..$senses
   \033[0m",$micro->usage($StructureName,$senses,$data));
 
+  $line = 1 unless($senses != 1);
   chomp($line = <STDIN>) unless($line);
 
   my $d = join("#",@{$data->{rows}->{search}});

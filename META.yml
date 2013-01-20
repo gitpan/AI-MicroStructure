@@ -19,6 +19,7 @@ requires:
   Data::Dumper: 0
   Data::Printer: 0
   Digest::MD5: 0
+  Env: 0
   Exporter: 0
   Fcntl: 0
   File::Basename: 0
@@ -28,10 +29,12 @@ requires:
   HTML::SimpleLinkExtor: 0
   HTML::Strip: 0
   HTTP::Request::Common: 0
+  IO::Async::Loop: 0
   JSON: 0
   JSON::XS: 0
   LWP::UserAgent: 0
   List::Util: 0
+  Net::Async::WebSocket::Server: 0
   Parallel::Iterator: 0
   Statistics::Basic: 0
   Storable: 0
@@ -42,4 +45,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.012
+version: 0.013

@@ -1,5 +1,8 @@
 #!/usr/bin/perl -w
 
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
 use strict;
 use utf8;
 use File::Spec;
@@ -61,18 +64,18 @@ foreach(@ARGV)
 #die(ref $new->{storage});
 $new->{storage}->{data} = $new->inspect($new->{scale});
 
-my $sense = JSON::XS->new->pretty(1)->allow_blessed($new->{storage});
+my $sense = JSON::XS->new->pretty(0)->allow_blessed($new->{storage});
 
-foreach(sort {$a <=> $b} keys %{$new->{storage}->{dominant}}){
+foreach(sort {$a <=> $b} keys %{$new->{storage}->{related}}){
 
-printf("\n%s = %d",$new->{storage}->{dominant}->{$_},$_) unless($_==1);
+print join("\n", @{ $new->{storage}->{related}->{$_} });
 
 }
 
 `IFS=\$IFS_BAK;`;
 
 
-p $new->{storage}->{data};
+#p $new->{storage}->{data};
 
 
 

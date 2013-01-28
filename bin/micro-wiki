@@ -1,23 +1,35 @@
-#!/usr/bin/perl -X 
+#!/usr/bin/perl -X
+use Cwd;
 use utf8;
 use File::Spec;
-use Parallel::Iterator qw( iterate );
-
-
-binmode STDOUT, ':utf8';
-binmode STDERR, ':utf8';
-
-use HTML::Strip;
+use Config::Auto;
 use Data::Printer;
+use Parallel::Iterator qw( iterate );
+use Env qw/PWD/;
+use JSON::XS;
+use HTML::Strip;
 use Digest::MD5 qw(md5_hex);
 use AI::MicroStructure::WordBlacklist;
 use JSON::XS;
 use WWW::Wikipedia;
 use Storable::CouchDB;
-require LWP::UserAgent;
+use LWP::UserAgent;
 
-$ARGV[0] = "Planet" unless($ARGV[0]);
 
+
+binmode STDOUT, ':utf8';
+binmode STDERR, ':utf8';
+die("require a argument") unless($ARGV[0]);
+my @CWD; push @CWD, getcwd();
+my $config = Config::Auto::parse(".micro", path => @CWD);
+$config->{couchdb}    ||= "http://localhost:5984/";
+$config->{conceptimg} ||= "http://localhost/tiny/concept2.php";
+$config->{wikipedia}  ||= "http://en.wikipedia.org/wiki/";
+$config->{buffer} = "";
+$config->{out} ||= "json";
+$config->{db} = $config->{out} =~ /wiki/ ? "micro-relations" : sprintf("%s/%s-relations.json",$PWD,$ARGV[0]);
+
+p $config;
 #exit(0) unless (!checkIsThere($ARGV[0]));
 
 
@@ -42,8 +54,8 @@ my $TOP="";
 
 
    our $x = Storable::CouchDB->new(
-            uri =>"http://user::pass\@localhost:5984/",  #default
-            db  =>"table"
+            uri =>$config->{couchdb},  #default
+            db  =>$config->{db}
            );
 
 
@@ -70,7 +82,7 @@ my $TOP="";
 
     require LWP::UserAgent;
     my $ua = LWP::UserAgent->new;
-    my ($server,$db) = (sprintf("http://%s:5984","localhost"),"table");
+    my ($server,$db) = ($config->{couchdb},$config->{db});
 
     my $res = $ua->get(sprintf('%s/%s/_all_docs?key="%s"',
                                 $server,
@@ -115,7 +127,7 @@ sub imgTranslate {
    my ($url) = @_;
 
 if($url){
-	my $request = HTTP::Request::Common::GET("http://localhost/tiny/concept2.php?img=".$url);
+	my $request = HTTP::Request::Common::GET(sprintf("%s?img=%s", $config->{conceptimg}, $url));
        $request->content_type('application/x-www-form-urlencoded');
 
 	my  $ua = LWP::UserAgent->new;
@@ -141,7 +153,7 @@ sub call  {
 
   my ($idx,$url) = @_;
 
-  return () unless (!checkIsThere($url) || $idx==0);
+  return () unless (!checkIsThere($url) || $idx==0 || $config->{out}=~/json/);
 
   warn "doing $url";
 #
@@ -157,7 +169,7 @@ sub call  {
  # @book = ();
 
   my @book = ();
-    $response  = $ua->get(sprintf("http://en.wikipedia.org/wiki/%s",ucfirst($url)));
+    $response  = $ua->get(sprintf("%s%s",$config->{wikipedia}, ucfirst($url)));
 
 
 
@@ -183,12 +195,12 @@ sub call  {
 
       	  $linkdata->{audio}=[grep{/^http.*.[\.](mp3|wave|ogg|OGG|WAVE|MP3)$/}@links];
 
-          @links = grep{/^http:\/\/en.wikipedia.org\/wiki/}@links;
+          @links = grep{/^http:\/\/$config->{wikipedia}\/wiki/}@links;
           $linkdata->{image}=[grep{/^http.*.[\.](JPG|GIF|PNG|svg|jpg|png|gif)$/}@links];
 
 
 
-        @{$doc->{audio}} = map{$_=shift imgTranslate($_) } @{$doc->{audio}};
+        @{$doc->{audio}} = map{$_=shift @{(imgTranslate($_)  || [])} } @{$doc->{audio}};
 
         @{$doc->{audio}} = grep{ defined }@{$doc->{audio}};
 
@@ -219,7 +231,7 @@ my $hs = HTML::Strip->new();
                $doc->{members}={};
 
                my $ltxt = join("\n",@links);
-                  $ltxt =~ s/http:\/\/en.wikipedia.org\/wiki\///g;
+                  $ltxt =~ s/http:\/\/en.wikipedia.org\/wiki\///g; # FIXME replace with $config->{wikipedia}
 
                push @{$doc->{tags}},map{$_=lc($_); $_=~s/\)//g; $_=~s/ /_/g; $_=[split("_\\(",$_)] }grep {/[(].+?[)]/} split("\n",$ltxt);
                foreach(@{$doc->{tags}}){
@@ -242,6 +254,7 @@ my $hs = HTML::Strip->new();
                  $doc->{links}=[grep{!/:Wikipedia/}@links];
                  $doc->{image}=$linkdata->{image};
                  $doc->{audio}=$linkdata->{audio};
+                 # FIXME replace with $config->{wikipedia}
                  $doc->{book}=[grep{/^http:\/\/en.wikipedia.org\/wiki\/Book:/}@{$doc->{links}}];
                  $doc->{portal}=[grep{/^http:\/\/en.wikipedia.org\/wiki\/Portal:/}@{$doc->{links}}];
                  $doc->{cat}=[grep{/^http:\/\/en.wikipedia.org\/wiki\/Category:/}@{$doc->{links}}];
@@ -253,7 +266,7 @@ my $hs = HTML::Strip->new();
 
 
 
-        @{$doc->{image}} = map{$_=shift imgTranslate($_) } @{$doc->{image}};
+        @{$doc->{image}} = map{$_=shift @{(imgTranslate($_) || [])} } @{$doc->{image}};
         @{$doc->{image}} = grep{ defined }@{$doc->{image}};
 
 
@@ -288,8 +301,10 @@ my $hs = HTML::Strip->new();
 
     #       my @L  = [sort {$a cmp $b}grep{/(wiki|book|Category|List_of_)/i} @links];
 #p $doc;
-       $x->store("$url" ,$doc);
+	
+       $x->store("$url" ,$doc) unless($config->{out}=~/json/);
 
+		
   #     p $doc;
 
         return $doc;
@@ -311,9 +326,9 @@ my $url_iter = list_iter( @{$result->{$urlx}->{related}});
 
 my $page_iter = iterate( \&call, $url_iter );
 
-  my @out = ( );
+  our $out = {};
      while ( my ( $index, $value ) = $page_iter->() ) {
-         $out[$index] = $value;
+         $out->{$index} = $value;
      }
 
     exit;
@@ -332,7 +347,21 @@ BEGIN{
 }
 END{
     `IFS=\$IFS_BAK;`;
-     p @out;    
+     
+     if($config->{out}=~/json/) {
+
+
+	my $json = JSON::XS->new->pretty(1)->encode({ "query" => [@ARGV],
+                                                  "responce" =>[$out]});
+		 
+ 
+      open (MYFILE, '>>'.$config->{db});
+		print MYFILE $json;
+		close (MYFILE); 
+
+     
+	}
+
      exit(0);
 
 }

@@ -4,8 +4,18 @@ use warnings;
 use JSON::XS;
 use Data::Printer;
 use AI::MicroStructure;
+use AI::MicroStructure::Util;
+#use AI::MicroStructure::Fitnes;
+#use AI::MicroStructure::Categorizer;
+#use AI::MicroStructure::Memorizer;
+#use AI::MicroStructure::Tree;
+#use AI::MicroStructure::Collection;
 use Storable::CouchDB;
-my @ARGVX = ();
+
+my $state = AI::MicroStructure::Util::load_config(); my @CWD=$state->{cwd}; my $config=$state->{cfg};
+
+
+
 
   sub checkIsThere {
 
@@ -14,10 +24,10 @@ my @ARGVX = ();
 
     require LWP::UserAgent;
     my $ua = LWP::UserAgent->new;
-    my ($server,$db) = (sprintf("http://%s:5984","localhost"),"table");
+    my ($server,$db) = ($config->{couchdb},$config->{db});
 
    my $res ;
-                                
+
     $res = $ua->get(sprintf('%s/%s/_design/base/_view/instances?reduce=false&start_key=["%s"]&end_key=["%sz"]',
                               $server,
                               $db,
@@ -27,14 +37,14 @@ my @ARGVX = ();
 
 $res = decode_json($res->content);
 return @{$res->{rows}};
-    
-  
+
+
 }
 
 
    our $x = Storable::CouchDB->new(
-                                      uri =>"http://user:pass\@localhost:5984/",  #default
-                                      db  =>"table"
+                                      uri => $config->{couchdb},  #default
+                                      db  => $config->{db}
                                      );
 
 
@@ -48,7 +58,7 @@ push @ARGV,"movie";
 push @ARGV,"rapstar";
 push @ARGV,"artist";
 push @ARGV,"actor";
-push @ARGV,"movie"; 
+push @ARGV,"movie";
 push @ARGV,"rock";
 push @ARGV,"pop";
 push @ARGV,"song";
@@ -61,15 +71,12 @@ my @set = checkIsThere($cat);
 print  map{  push @q,$_->{id} unless(!$_->{id});}@set;
 print join "\n",@q;
 map{ $x->delete($_); }@q;
-} 
+}
 
 
 deleteByCategory($_) for(@ARGV);
- 
-#p @set;
-#print map{  p @set,$x;}@set;
-#map{ $x->delete($_->{id}); }@set;
-  
+
+
   1;
-  
+
   __END__

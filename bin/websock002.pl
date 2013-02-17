@@ -7,6 +7,7 @@ use Config::Auto;
 use Data::Dumper;
 use Data::Printer;
 use AI::MicroStructure;
+use AI::MicroStructure::Util;
 use Storable::CouchDB;
 use IO::Async::Loop;
 use Digest::MD5;
@@ -26,9 +27,6 @@ my $pwd = $PWD;
 
 my @ARGVX = ();
 
-my @CWD; push @CWD, getcwd();
-my $config = Config::Auto::parse(".micro", path => @CWD);
-$config->{couchdb}    ||= "http://user::pass\@localhost:5984/";
 
 our $json_main =  {lang=>"C",category=>"no",name=>"santex",size=>1,children=>[]};
 
@@ -39,14 +37,15 @@ our $json_main =  {lang=>"C",category=>"no",name=>"santex",size=>1,children=>[]}
 
 
 
-my $x = AI::MicroStructure->new;
+our $x = AI::MicroStructure->new;
+
 
 sub getAll {
   my $key =shift;
 
   require LWP::UserAgent;
   my $ua = LWP::UserAgent->new;
-  my ($server,$db) = ($config->{couchdb},"table");
+  my ($server,$db) = ($x->{state}->{cfg}->{couchdb},"table");
   my $res = $ua->get(sprintf('%s/%s/_design/base/_view/instances?reduce=false&start_key=["%s"]&end_key=["%sZZZ"]',
                               $server,
                               $db,
@@ -67,7 +66,7 @@ foreach(@{$content->{rows}}){
 }
 
 my $cont = {};
-	$res = $ua->get(sprintf('%s/%s/_design/base/_view/pdf?start_key="%s"&end_key="%sZZZ"',
+  $res = $ua->get(sprintf('%s/%s/_design/base/_view/pdf?start_key="%s"&end_key="%sZZZ"',
                               $server,
                               $db,
                               $key,
@@ -75,18 +74,19 @@ my $cont = {};
 
 
  my $pdf = decode_json($res->content);
- 
 
- foreach(@{$pdf->{rows}}) { 
-	 foreach my $l(@{$_->{value}}){
-		 
-		
-		$cc->{$l} = 1 unless($l!~ m/^http.*.pdf$/i);
-	}
+
+ foreach(@{$pdf->{rows}}) {
+   foreach my $l(@{$_->{value}}){
+
+    if($l){
+      $cc->{$l} = 1 unless($l!~ m/^http.*.pdf$/i);
+    }
+  }
 }
 
 
-	$res = $ua->get(sprintf('%s/%s/_design/base/_view/image?reduce=false&start_key="%s"&end_key="%sZZZ"',
+  $res = $ua->get(sprintf('%s/%s/_design/base/_view/image?reduce=false&start_key="%s"&end_key="%sZZZ"',
                               $server,
                               $db,
                               $key,
@@ -94,14 +94,16 @@ my $cont = {};
 
 
  my $img  = decode_json($res->content);
- 
- 
- foreach(@{$img->{rows}}) { 
-	 foreach my $l(@{$_->{value}}){
-		$cc->{$l} = 1 unless($l!~ m/upload.*.(png|jpg|gif|svg|jpeg)$/i);
-	}
+
+
+ foreach(@{$img->{rows}}) {
+   foreach my $l(@{$_->{value}}){
+     if($l){
+      $cc->{$l} = 1 unless($l!~ m/upload.*.(png|jpg|gif|svg|jpeg)$/i);
+     }
+  }
 }
- 
+
 
 $res = $ua->get(sprintf('%s/%s/_design/base/_view/audio?reduce=false&start_key="%s"&end_key="%sZZZ"',
                               $server,
@@ -111,18 +113,18 @@ $res = $ua->get(sprintf('%s/%s/_design/base/_view/audio?reduce=false&start_key="
 
 
  my $media  = decode_json($res->content);
- 
- foreach(@{$media->{rows}}) { 
-	 foreach my  $l  (@{$_->{value}}){
-		$cc->{$l} = 1 unless($l!~ m/upload.*.(ogg|avi|mpg)$/i);
-	}
+
+ foreach(@{$media->{rows}}) {
+   foreach my  $l  (@{$_->{value}}){
+     if($l){
+      $cc->{$l} = 1 unless($l!~ m/upload.*.(ogg|avi|mpg)$/i);
+     }
+  }
 }
 
 
 
-push @all,[keys %$cc];
-
-return @all;
+return {set=>[@all],kv=>keys %$cc};
 
 
 }
@@ -151,23 +153,23 @@ sub printer {
 
      $msg = "space" unless($msg);
 
-     my @data = getAll($msg);
-	
-	my $plus = pop @data;
-     
-     
+     my $data = getAll($msg);
+
+    my @data = @{$data->{set}};
+
 
      $cmd->{q} = join(" ",@data);
 
-     $cmd->{action} = [map{my @a= [split(":",$_)]; $a[0][0]=~ s/ //g; $_={neighbour => $a[0][1], spawn => $a[0][0]}} split ("\n",`echo "$cmd->{q}" | tr " " "\n" | data-freq | egrep "[2-9][0-9]"`)];
-     
-     
+     $cmd->{action} = [map{my @a= [split(":",$_)]; $a[0][0]=~ s/ //g; $_={neighbour => $a[0][1], spawn => $a[0][0]}} split ("\n",`echo "$cmd->{q}" | tr " " "\n" | data-freq --limit 100`)];
+
+
 
      $cmd->{json} = JSON::XS->new->pretty(1)->encode({ "query" => $msg,
                                                       "callback" => "makeList",
                                                       "responce" =>
                                                       [$cmd->{action},
-                                                      sort values %$plus]});
+                                                      $data]});
+
 
       return $cmd->{json};
 
@@ -178,20 +180,21 @@ my $server = Net::Async::WebSocket::Server->new(
    on_client => sub {
       my ( undef, $client ) = @_;
       my $list;
+
       $client->configure(
          on_frame => sub {
             my ( $self, $frame ) = @_;
-            $self->{frame} = $frame;
-            
+
             $list = printer($frame);
-            $self->send_frame( $list );
-    
+            my %args = (max_payload_size=>9999999,buffer=> $list);
+            $self->send_frame(%args);
+
          },
       );
    }
 );
 
-my $loop = IO::Async::Loop->new(max_payload_size=>0);
+my $loop = IO::Async::Loop->new(max_payload_size=>11110);
 
 $loop->add( $server );
 
@@ -199,6 +202,7 @@ $server->listen(
    family => "inet",
    service => $PORT,
    ip=>"127.0.0.1",
+
    on_listen => sub { print Dumper "Cannot listen - ",$_[-1];  },
    on_resolve => sub { print Dumper "Cannot resolve - ",$_[-1];},
    on_listen_error => sub { die "Cannot listen - $_[-1]" },

@@ -2,7 +2,9 @@
 abstract: 'AI::MicroStructure   Creates Concepts for words'
 author:
   - 'santex <santex@cpan.org>'
-build_requires: {}
+build_requires:
+  File::Find: 0
+  Test::More: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
@@ -17,10 +19,10 @@ requires:
   AI::Categorizer::Document: 0
   AI::Categorizer::KnowledgeSet: 0
   AI::Categorizer::Learner::NaiveBayes: 0
+  AI::MicroStructure::util: 0
   Algorithm::BaumWelch: 0
   AnyDBM_File: 0
   AnyEvent::Subprocess::Easy: 0
-  BerkeleyDB: 0
   Cache::Memcached::Fast: 0
   Carp: 0
   Class::Container: 0
@@ -29,6 +31,8 @@ requires:
   Data::Dumper: 0
   Data::Printer: 0
   Digest::MD5: 0
+  Digest::SHA1: 0
+  DynaLoader: 0
   Env: 0
   Exporter: 0
   Fcntl: 0
@@ -36,9 +40,10 @@ requires:
   File::Glob: 0
   File::Spec: 0
   Getopt::Long: 0
+  HTML::Entities: 0
+  HTML::Parser: 0
   HTML::SimpleLinkExtor: 0
   HTML::Strip: 0
-  HTTP::Request::Common: 0
   IO::Async::Loop: 0
   IO::File: 0
   JSON: 0
@@ -49,6 +54,7 @@ requires:
   Net::Async::WebSocket::Server: 0
   Parallel::Iterator: 0
   Params::Validate: 0
+  Search::ContextGraph: 0
   Statistics::Basic: 0
   Statistics::Contingency: 0
   Statistics::Descriptive: 0
@@ -57,12 +63,17 @@ requires:
   Statistics::MVA::HotellingTwoSample: 0
   Storable: 0
   Storable::CouchDB: 0
+  Symbol: 0
   Term::ReadKey: 0
+  Thread::Queue: 0
   URI::Escape: 0
+  URI::URL: 0
   WWW::Wikipedia: 0
   base: 0
   strict: 0
+  threads: 0
+  threads::shared: 0
   utf8: 0
   vars: 0
   warnings: 0
-version: 0.014
+version: 0.015

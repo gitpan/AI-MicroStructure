@@ -1,23 +1,77 @@
 #!/usr/bin/perl -X
+
 use strict;
 use warnings;
+use Digest::MD5 qw(md5_hex);
 use AI::MicroStructure::Util;
-
+use Getopt::Long;
+use AI::MicroStructure;
+use Data::Printer;
+use Data::Dumper;
+use JSON::XS;
+use Try::Tiny;
+use Cache::Memcached::Fast;
 my %conf = ( );
+our $keys = {};
 GetOptions( \%conf, "whitespace|ws!", "version","structures", "help", "remote","new",
                     "init", "export", "import",
                     "check", "category=s", "sources" ,"drop");
 
-our ($new, $write,$drop,$all) =(0,0,0,0);
+our ($new, $write,$drop,$all,$verbose) =(0,0,0,0,0);
+our $kkey = sprintf "%s",join("_",@ARGV);
+our $argkey = md5_hex($kkey);
+our $memd  = "";
+sub check {
+
+}
 
 
+sub init {
+
+  $memd = new Cache::Memcached::Fast({
+     servers => [ { address => 'localhost:11211', weight => 2.5 }],
+     namespace => 'my:',
+     connect_timeout => 0.2,
+     io_timeout => 0.1,
+     close_on_error => 1,
+     compress_threshold => 100_000,
+     compress_ratio => 0.9,
+     max_failures => 1,
+     max_size => 512 * 1024,
+  });
+
+  if(!$#ARGV){
+    push @ARGV,"any";
+   }
+  $keys = $memd->get("allkeys");
+  $keys->{$kkey}=time();
+  $memd->set("allkeys",$keys);
+
+
+if($kkey =~ /debug/){
+  my $NORMAL=`tput sgr0`;
+  my $REVERSE=`tput smso`;
+  print "$REVERSE $_ $NORMAL " for @ARGV;
+  print "\n";
+}else{
+}
+
+   if(defined(my $ret = $memd->get($argkey)) && ($kkey !~ m/(any|structures)/i) &&  @ARGV){
+
+   print "$ret\n";
+
+   exit;
+   #die($ret);
+  }else{
+
+  }
+
+
+}
+init();
 if( grep{/\ball\b/} @ARGV ){ $all = 1; cleanArgs("all");  };
 
 
-use AI::MicroStructure;
-use Getopt::Long;
-use Data::Dumper;
-use JSON::XS;
 our $main = AI::MicroStructure->new();
 
 
@@ -39,6 +93,8 @@ if($conf{"init"}) {
 my $state = AI::MicroStructure::Util::load_config(); my @CWD=$state->{cwd}; my $config=$state->{cfg};
 our $structdir = "structures";
 our $absstructdir = "$CWD[0]/$structdir";
+
+
 
 if ($conf{"export"}) {
     my $cwd = $CWD[0];
@@ -63,6 +119,9 @@ print $main->help;
 exit(0);
 }
 
+sub is_integer {
+   defined $_[0] && $_[0] =~ /^[+-]?\d+$/;
+}
 
 
 sub cleanArgs{
@@ -80,10 +139,44 @@ my $structure;
 
 if(defined($ARGV[0]) && $ARGV[0] =~ m/structures/){
 
+
+
     @local = grep{!/any/}AI::MicroStructure->new()->structures();
 
-    print join $sep, @local, @remote;
+    if(defined($ARGV[1]) && is_integer($ARGV[1])){
+      my $index = rand $#local;
+         $index = $index-$ARGV[1];
+                  $index = $index?$index:0;
+      @local = @local[$index+1..$index+$ARGV[1]];
+
+    }
+
+    my $val = sprintf "%s",join $sep, @local, @remote;
+    $memd->set($argkey,$val);
+    print "$val";
+     exit;
+}
+
+if(defined($ARGV[0]) && $ARGV[0] =~ m/structures/){
+
+
+
+    @local = grep{!/any/}AI::MicroStructure->new()->structures();
+
+    if(defined($ARGV[1]) && is_integer($ARGV[1])){
+      my $index = rand $#local;
+         $index = $index-$ARGV[1];
+                  $index = $index?$index:0;
+      @local = @local[$index+1..$index+$ARGV[1]];
+
+    }
+
+    my $val = sprintf "%s", join $sep, @local, @remote;
+    $memd->set($argkey,$val);
+
+    print "$val";
     exit;
+
 }
 
 if($conf{"new"} and $ARGV[0] !~/structures/  and $ARGV[0] =~ m{^([^/]+)/(.*)}s) {
@@ -91,6 +184,8 @@ if($conf{"new"} and $ARGV[0] !~/structures/  and $ARGV[0] =~ m{^([^/]+)/(.*)}s) 
     $conf{category} = $2;
 
     my $meta = AI::MicroStructure->new( $structure, category => "new" );
+    $memd->set($argkey,$meta);
+     p $meta;
     exit;
 }
 
@@ -115,6 +210,10 @@ AI::MicroStructure->new( $structure, category => "new" )
 # my $module = "AI::MicroStructure::$structure";
 my $module = "$absstructdir/$structure.pm";
 
+if(!-f $module){
+`touch $module`;
+`micro $structure new verbose`;
+}
 
 # load the remote structure if needed
 if ( $conf{remote} || $conf{check} || $conf{sources}) {
@@ -128,10 +227,19 @@ print STDERR
 "meta, a simple front-end to AI::MicroStructure version $AI::MicroStructure::VERSION\n"
   if $conf{version};
 print STDERR $main->help if $conf{help};
+
 print map "$_\n", AI::MicroStructure->structures if $conf{structures};
+
 if ( $conf{sources} ) {
     my @sources = $module->sources( $conf{category} );
-    print map "$_\n", @sources;
+
+
+    my $var = map "$_\n", @sources;
+
+    $memd->set($argkey,$var);
+    print $var;
+    exit;
+
 }
 exit if $conf{structures} || $conf{version} || $conf{help} || $conf{sources};
 
@@ -144,6 +252,7 @@ if ( !$conf{remote} ) {
     my $count = shift;
     $count = 1 unless defined $count;
     $count = 0 if $conf{check};
+
     if($all){
     @local = $meta->name(0,scalar "");
     }else{
@@ -160,13 +269,17 @@ if ( $conf{check} ) {
     }
 }
 else {
-    print join $sep, @local, @remote;
+    my $val = sprintf "%s" ,join $sep, @local, @remote;
+    $memd->set($argkey,$val);
+    print "$val";
+    exit;
 }
 
 }
 
 END{
-#    print Dumper  [$structure,@ARGV,%conf];
+   # print Dumper  [$structure,\@ARGV,%conf,$argkey];
 }
 
 
+1;

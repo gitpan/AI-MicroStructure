@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+
 use utf8;
 use File::Basename;
 use Data::Printer;
@@ -31,11 +32,18 @@ our $doc ={};
 our @links;
 our $linkdata = {};
 our $result;
+our $odir = "";
 
+    if(-d $ARGV[1]){
+      $config->{jsonout} = pop @ARGV;
+      $odir = $config->{jsonout};
+    }
+    
 my $url = $ARGV[0];
 my @inx;
 my @test;
 my $search="";
+
 my $TOP="wikipedia";
 
 
@@ -123,15 +131,20 @@ sub imgTranslate {
 
 my ($idx,$url) = @_;
 
-
+print $idx;
+print $url;
 if($url){
 
 
-my $request = HTTP::Request::Common::GET($url);
-#my $response = $request->request($url);
-  $e->parse($request->decoded_content);
+my $ua = LWP::UserAgent->new;
 
-  return $e->{img};
+
+$response  = $ua->get(sprintf("%s%s",$config->{wikipedia}, ucfirst($url)));
+
+
+  $e->parse($response->decoded_content);
+
+  return $e->links;
 }
 }
 
@@ -141,7 +154,7 @@ sub call  {
 
 my ($idx,$url) = @_;
 
-#return () unless (!checkIsThere($url) || $idx==0 || $config->{out}=~/json/);
+exit (0) unless (!checkIsThere($url) || $idx==0);
 
 
 warn "doing ", $url;
@@ -178,35 +191,23 @@ $response  = $ua->get(sprintf("%s%s",$config->{wikipedia}, ucfirst($url)));
 
       require HTML::SimpleLinkExtor;
       no warnings 'utf8';
-      my $e = HTML::SimpleLinkExtor->new($response->base);
+      my $e = HTML::SimpleLinkExtor->new();
       $e->parse($response->decoded_content);
+
+
       my @all_links = $e->links;
-      @links = grep {/$TOP|.pdf|.ogg|.mp3|.mpg|.mkv|.mp4|.avi|.wav|.gif|.jpeg|.jpg|.png|.svg|.tif|.tiff|.bmp/i}grep{!/Disambig|Help:|Wikipedia:|Special:|:Contents|:Featured_content|Main_Pag|_talk:|Talk:|#|[Aa]rticle[s|_]|All_*_*/}map{$_="$_"}@all_links;
+my @links = grep {/$TOP|.pdf|.ogg|.mp3|.mpg|.avi/}grep{!/Disambig|Help:|Wikipedia:|Special:|:Contents|:Featured_content|Main_Pag|_talk:|Talk:|#|[Aa]rticle[s|_]|All_*_*/}@all_links;
+
+          $doc->{image}=[$e->img];
+          $doc->{linknr}=$#links;
+          $doc->{links}=[@all_links];
+
+          $doc->{pdf}=[grep{/^(\/\/|upload|http).*.(pdf|PDF)$/}@links];
+
+          $doc->{audio}=[grep{/^(\/\/|upload|http).*.(mp3|wave|ogg|OGG|WAVE|MP3)$/}@links];
 
 
-      $linkdata->{pdf}=[grep{/^http.*.[\.](pdf)$/i}@links];
-
-      $linkdata->{image}=[grep{/http.*.[\.](svg|jpeg|jpg|png|gif|tif|tiff|bmp)$/i}@links];
-
-      $linkdata->{audio}=[grep{/^http.*.[\.](mp3|mpg|wav|ogg|avi|mkv|mp4)$/i}@links];
-
-    my $url_iter = down_iter( @{$linkdata->{image}});
-    my $page_iter = iterate( \&imgTranslate, $url_iter );
-
-    while ( my ( $index, $value ) = $page_iter->() ) {
-
-    }
-
-
-
-
-
-
-
-
-
-
-           $doc->{linknr}=$#links;
+           $doc->{linknr}=$#all_links;
            $doc->{url}=$url;
            $doc->{tags}=[map{$_=lc($_); $_=~s/\)//g; $_=~s/ /_/g; $_=[split("_\\(",$_)] }grep {/[(].+?[)]/} $result->related()];
            $doc->{instances}= {};
@@ -215,8 +216,9 @@ $response  = $ua->get(sprintf("%s%s",$config->{wikipedia}, ucfirst($url)));
            my $ltxt = join("\n",@links);
               $ltxt =~ s/http:\/\/en.wikipedia.org\/wiki\///g; # FIXME replace with $config->{wikipedia}
 
-           push @{$doc->{tags}},map{$_=lc($_); $_=~s/\)//g; $_=~s/ /_/g; $_=[split("_\\(",$_)] }grep {/[(].+?[)]/} split("\n",$ltxt);
+           push @{$doc->{tags}},grep{!/\W/}map{$_=lc($_); $_=~s/\)//g; $_=~s/ /_/g; $_=[split("_\\(",$_)] }grep {/[(].+?[)]/} split("\n",$ltxt);
            foreach(@{$doc->{tags}}){
+
             if($_->[0] && $_->[1]){
             $doc->{instances}->{lc $_->[0]}=lc $_->[1];
             push @test,lc $_->[0];
@@ -233,22 +235,13 @@ $response  = $ua->get(sprintf("%s%s",$config->{wikipedia}, ucfirst($url)));
 #                 push @{$doc->{instances}},lc($url);
 
              $doc->{article}=$clean_text;
-             $doc->{links}=@links;
-             $doc->{pdf}=$linkdata->{pdf};
-             $doc->{audio}=$linkdata->{audio};
-             $doc->{image}=$linkdata->{image};
-             # FIXME replace with $config->{wikipedia}
-             $doc->{book}=[grep{/^http:\/\/en.wikipedia.org\/wiki\/Book:/}@{$doc->{links}}];
-             $doc->{portal}=[grep{/^http:\/\/en.wikipedia.org\/wiki\/Portal:/}@{$doc->{links}}];
-             $doc->{cat}=[grep{/^http:\/\/en.wikipedia.org\/wiki\/Category:/}@{$doc->{links}}];
-             $doc->{list}=[grep{/^http:\/\/en.wikipedia.org\/wiki\/List_of/}@{$doc->{links}}];
-             $doc->{tmpl}=[grep{/^http:\/\/en.wikipedia.org\/wiki\/Template:/}@{$doc->{links}}];
+
              $doc->{recorded}=time;
 
 
 
 
-    $doc->{$_} = $_=~/full/? smartdecode($hs->parse($result->{$_})) : smartdecode($result->{$_}) for qw(            cursor
+        $doc->{$_} = $_=~/full/? smartdecode($hs->parse($result->{$_})) : smartdecode($result->{$_}) for qw(            cursor
                                           related
                                           categories
                                           headings
@@ -258,7 +251,8 @@ $response  = $ua->get(sprintf("%s%s",$config->{wikipedia}, ucfirst($url)));
             $doc->{size} = length sprintf($doc);
 
 
-        eval '$couchdb->store("$url" ,$doc)' or warn "error: $@\n";
+        #eval '$couchdb->store("$url" ,$doc)' or warn "error: $@\n";
+
         createJsonFile($url,$doc);
 
 
@@ -273,27 +267,30 @@ $response  = $ua->get(sprintf("%s%s",$config->{wikipedia}, ucfirst($url)));
 
 our @out = ();
 foreach my $urlx (@ARGV) {
+
+
 if($urlx) { $result->{$urlx} = call(0,$urlx); }
 
 
 
-if(defined($result->{$urlx}) && @{$result->{$urlx}->{related}}){
-
-  my $url_iter = list_iter( @{$result->{$urlx}->{related}});
+#if(defined($result->{$urlx}) && defined($result->{$urlx}->{related}) && @{$result->{$urlx}->{related}}){
 
 
-  my $page_iter = iterate( \&call, $url_iter );
-
-      while ( my ( $index, $value ) = $page_iter->() ) {
-         $out[$index] = $value;
-         print "$index\n";
+ # my $url_iter = list_iter( @{$result->{$urlx}->{related}});
 
 
-  }
+#  my $page_iter = iterate( \&call, $url_iter );
+
+    #  while ( my ( $index, $value ) = $page_iter->() ) {
+   #      $out[$index] = $value;
+  #       print "$index\n";
+
+
+ # }
 
 
 
-}
+#}
 
 }
 
@@ -304,13 +301,14 @@ my $uri = shift;
 my $json = shift;
 
 
-
+#   $couchdb->store("$uri" ,$json) ;
 my $p = dirname($config->{jsonout});
-print `mkdir -p $p`;
-open (MYFILE,sprintf( '>%s-%s.json',$config->{jsonout},$uri));
+#print `mkdir -p $p`;
+open (MYFILE,sprintf('>%s%s.json',$odir,$uri));
 print MYFILE encode_json($json);
 close (MYFILE);
 
+return $json;
 }
 
 

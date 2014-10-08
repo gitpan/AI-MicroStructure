@@ -7,7 +7,7 @@ use Env qw/PWD/;
 
 sub get_cwd {
     my @CWD; if (!-e ".micro") {
-        push @CWD, $ENV{HOME};
+        push @CWD, $ENV{HOME}."/data-hub/";
     } else {
         push @CWD, getcwd();
     }
@@ -17,9 +17,9 @@ sub get_cwd {
 sub load_config {
 
     my @CWD = AI::MicroStructure::Util::get_cwd();
-    my $config = Config::Auto::parse(".micro", path => @CWD) || {};
+    my $config = {};#Config::Auto::parse(".micro", path => @CWD) || {};
     if (-e ".micro" && -e $ENV{HOME}."/.micro") {
-        my $c = Config::Auto::parse("$ENV{HOME}/.micro");
+        my $c = Config::Auto::parse($ENV{HOME}."/.micro");
         foreach (keys %{$c}) { $config->{$_} ||= $c->{$_}; }
     }
     if($config->{default}) {
@@ -52,10 +52,9 @@ sub config {
     $state->{cfg}->{wikipedia}  ||= "http://en.wikipedia.org/wiki/";
     $state->{cfg}->{db}         ||= "table";
     $state->{cfg}->{out}        ||= "json";
-    $state->{cfg}->{jsonout}      = sprintf("%s/%s/%s-relations",
+    $state->{cfg}->{jsonout}      = sprintf("%s/%s/",
                                             $state->{cwd},
-                                            $state->{cfg}->{db},
-                                            $state->{cfg}->{query});
+                                            $state->{cfg}->{db});
 
 
 
@@ -63,5 +62,4 @@ sub config {
 
     return $state;
 }
-
 1;
